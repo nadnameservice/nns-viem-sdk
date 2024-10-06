@@ -1,0 +1,21 @@
+{
+  "name": "@nadnameservice/nns-viem-sdk",
+  "version": "1.0.0",
+  "description": "Nad Name Service SDK using Viem",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "author": "NadNameService",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.6.2"
+  },
+  "files": [
+    "lib"
+  ],
+  "dependencies": {
+    "viem": "^2.21.16"
+  }
+}
