@@ -1,7 +1,9 @@
 export const nnsContractAddress =
-  '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707'
+  '0x3019BF1dfB84E5b46Ca9D0eEC37dE08a59A41308'
 
 export const avatarKey = 'avatar'
+
+export const tld = '.nad'
 
 export const nnsAbi = [
   {
@@ -26,6 +28,38 @@ export const nnsAbi = [
   {
     inputs: [
       {
+        internalType: 'bytes32[]',
+        name: 'nodes',
+        type: 'bytes32[]',
+      },
+    ],
+    name: 'getResolvedAddresses',
+    outputs: [
+      {
+        components: [
+          {
+            internalType: 'bytes32',
+            name: 'node',
+            type: 'bytes32',
+          },
+          {
+            internalType: 'address',
+            name: 'addr',
+            type: 'address',
+          },
+        ],
+        internalType:
+          'struct IResolvedAddressStorage.ResolvedAddressItem[]',
+        name: '',
+        type: 'tuple[]',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
         internalType: 'address',
         name: 'addr',
         type: 'address',
@@ -37,6 +71,38 @@ export const nnsAbi = [
         internalType: 'string',
         name: '',
         type: 'string',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address[]',
+        name: 'addr',
+        type: 'address[]',
+      },
+    ],
+    name: 'getPrimaryNameForAddresses',
+    outputs: [
+      {
+        components: [
+          {
+            internalType: 'address',
+            name: 'addr',
+            type: 'address',
+          },
+          {
+            internalType: 'string',
+            name: 'primaryName',
+            type: 'string',
+          },
+        ],
+        internalType:
+          'struct IPrimaryNameStorage.PrimaryNameItem[]',
+        name: '',
+        type: 'tuple[]',
       },
     ],
     stateMutability: 'view',
@@ -174,6 +240,78 @@ export const nnsAbi = [
     name: 'setNameAttributes',
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'addr',
+        type: 'address',
+      },
+    ],
+    name: 'getProfileForAddress',
+    outputs: [
+      {
+        components: [
+          {
+            internalType: 'address',
+            name: 'addr',
+            type: 'address',
+          },
+          {
+            internalType: 'string',
+            name: 'primaryName',
+            type: 'string',
+          },
+          {
+            internalType: 'string',
+            name: 'avatar',
+            type: 'string',
+          },
+        ],
+        internalType: 'struct INadNameService.Profile',
+        name: '',
+        type: 'tuple',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address[]',
+        name: 'addrs',
+        type: 'address[]',
+      },
+    ],
+    name: 'getProfilesForAddresses',
+    outputs: [
+      {
+        components: [
+          {
+            internalType: 'address',
+            name: 'addr',
+            type: 'address',
+          },
+          {
+            internalType: 'string',
+            name: 'primaryName',
+            type: 'string',
+          },
+          {
+            internalType: 'string',
+            name: 'avatar',
+            type: 'string',
+          },
+        ],
+        internalType: 'struct INadNameService.Profile[]',
+        name: '',
+        type: 'tuple[]',
+      },
+    ],
+    stateMutability: 'view',
     type: 'function',
   },
 ] as const

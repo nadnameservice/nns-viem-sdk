@@ -4,11 +4,13 @@ import {
   PublicClient,
   SendTransactionReturnType,
   WalletClient,
+  zeroAddress,
 } from 'viem'
 import {
   avatarKey,
   nnsAbi,
   nnsContractAddress,
+  tld,
 } from './constant'
 
 type ViemClient = PublicClient
@@ -16,6 +18,22 @@ type ViemClient = PublicClient
 export type NNSNameAttribute = {
   key: string
   value: string
+}
+
+export type Profile = {
+  primaryName: string | undefined
+  avatar: string | undefined
+  addr: string | undefined
+}
+
+export type ResolvedAddressItem = {
+  name: string
+  resolvedAddress?: string
+}
+
+export type PrimaryNameItems = {
+  addr: string
+  primaryName?: string
 }
 
 export class NNS {
@@ -28,6 +46,58 @@ export class NNS {
   ) {
     this.client = client
     this.walletClient = walletClient
+  }
+
+  /**
+   * Retrieves the profile associated with a given address.
+   *
+   * @param {string} address - The wallet address.
+   * @returns {Profile} A promise that resolves to the profile associated with the given address.
+   */
+  async getProfile(address: Address): Promise<Profile> {
+    const result = await this.client.readContract({
+      address: nnsContractAddress,
+      abi: nnsAbi,
+      functionName: 'getProfileForAddress',
+      args: [address],
+    })
+
+    const profile = {
+      primaryName:
+        result?.primaryName && result.primaryName !== ''
+          ? result.primaryName + tld
+          : undefined,
+      avatar:
+        result?.avatar !== '' ? result?.avatar : undefined,
+      addr: result?.addr,
+    }
+
+    return profile
+  }
+
+  /**
+   * Retrieves the profiles associated with a list of addresses.
+   * @param addrs - The list of wallet addresses
+   * @returns {Profile[]} A promise that resolves to the profiles associated with the given addresses.
+   */
+  async getProfiles(addrs: Address[]): Promise<Profile[]> {
+    const result = await this.client.readContract({
+      address: nnsContractAddress,
+      abi: nnsAbi,
+      functionName: 'getProfilesForAddresses',
+      args: [addrs],
+    })
+
+    const profiles = result.map((p) => ({
+      primaryName:
+        p?.primaryName && p.primaryName !== ''
+          ? p.primaryName + tld
+          : undefined,
+      avatar: p?.avatar !== '' ? p?.avatar : undefined,
+      addr: p?.addr,
+    }))
+
+    return profiles
   }
 
   /**
@@ -49,6 +119,44 @@ export class NNS {
   }
 
   /**
+   * Resolves a list of names to their respective addresses.
+   *
+   * @param {string[]} names - The list of names to resolve, with the **.nad** domain.
+   * @returns {ResolvedAddressesItem[]} An array of objects containing the name and its resolved address.
+   */
+  async getResolvedAddresses(
+    names: string[]
+  ): Promise<ResolvedAddressItem[]> {
+    const namehashes = names.map((name) => namehash(name))
+
+    const resolvedAddrs = await this.client.readContract({
+      address: nnsContractAddress,
+      abi: nnsAbi,
+      functionName: 'getResolvedAddresses',
+      args: [namehashes],
+    })
+
+    const result = names.map((name) => {
+      const resolvedAddressVal = resolvedAddrs.find(
+        (item) => item.node === namehash(name)
+      )?.addr
+
+      const resolvedAddress =
+        resolvedAddressVal !== undefined &&
+        resolvedAddressVal !== zeroAddress
+          ? resolvedAddressVal
+          : undefined
+
+      return {
+        name,
+        resolvedAddress,
+      }
+    })
+
+    return result
+  }
+
+  /**
    * Retrieves the primary name associated with an address.
    *
    * @param {string} address - The wallet address.
@@ -63,6 +171,42 @@ export class NNS {
       abi: nnsAbi,
       functionName: 'getPrimaryNameForAddress',
       args: [address],
+    })
+
+    return result != '' ? result + tld : ''
+  }
+
+  /**
+   * Retrieves the primary names associated with a list of addresses.
+   *
+   * @param {string[]} addrs - The list of wallet addresses.
+   * @returns {PrimaryNameItems[]} An array of objects containing the address and its primary name.
+   */
+  async getPrimaryNameForAddresses(
+    addrs: Address[]
+  ): Promise<PrimaryNameItems[]> {
+    const primaryNames = await this.client.readContract({
+      address: nnsContractAddress,
+      abi: nnsAbi,
+      functionName: 'getPrimaryNameForAddresses',
+      args: [addrs],
+    })
+
+    const result = addrs.map((addr) => {
+      const primaryNameVal = primaryNames.find(
+        (item) => item.addr === addr
+      )?.primaryName
+
+      const primaryName =
+        primaryNameVal !== undefined &&
+        primaryNameVal !== ''
+          ? primaryNameVal + tld
+          : undefined
+
+      return {
+        addr,
+        primaryName,
+      }
     })
 
     return result

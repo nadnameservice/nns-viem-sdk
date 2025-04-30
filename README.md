@@ -29,6 +29,7 @@ More information:
 
 - **Name Resolution:** Resolve `.nad` domain names to Ethereum addresses.
 - **Address Mapping:** Retrieve primary names associated with wallet addresses.
+- **Batch queries:** Retrieve resolved addresses, primary names, profiles, ...
 - **Attribute Management:** Get and set custom attributes for names.
 - **Avatar Integration:** Fetch avatar URLs associated with names.
 - **And many more...**
@@ -100,6 +101,47 @@ const nns = new NNS(viemClient, viemWalletClient)
 
 ### Examples
 
+#### Get profile of an address, include primary name and avatar
+
+```typescript
+const profile = await nns.getProfile(
+  '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
+)
+
+// {
+//   primaryName: 'test.nad',
+//   avatar: 'https://...
+// }
+```
+
+#### Get profiles for multiple address
+
+```typescript
+const profiles = await nns.getProfiles([
+  '0x771CdA7e3786979d8fDed8d4c22Cd42F7B576dD4',
+  '0x88eecAcDfaC29ab77aa5E185f34CF8481127FB0E',
+  '0xf020798E2D29C0e26d400EE12A1b100Da46bfB3C',
+])
+
+/*[
+  {
+    primaryName: 'nnsfaucet.nad',
+    avatar: undefined,
+    addr: '0x771CdA7e3786979d8fDed8d4c22Cd42F7B576dD4'
+  },
+  {
+    primaryName: 'tungtungtungsahur69.nad',
+    avatar: 'https://play-lh.googleusercontent.com/QrCjJRpiwcFZcwey7VYGtTLPM-iohNDa6ktQfRJNvr7meX3eeTSnyvW6Fe7fHh7Kjwc=w240-h480-rw',
+    addr: '0x88eecAcDfaC29ab77aa5E185f34CF8481127FB0E'
+  },
+  {
+    primaryName: 'hihihaha1234.nad',
+    avatar: 'https://cdn.discordapp.com/avatars/789141581155795004/a43f791724b7a61334c2f2b01ea82ddd.png',
+    addr: '0xf020798E2D29C0e26d400EE12A1b100Da46bfB3C'
+  }
+]*/
+```
+
 #### Get resolved address of a .nad name
 
 ```typescript
@@ -109,6 +151,40 @@ const resolveAddress = await nns.getResolvedAddress(
 // 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 ```
 
+#### Get resolved addresses for a list of name
+
+```typescript
+const resolveAddresses = await nns.getResolvedAddresses([
+  'mo.nad',
+  'keone.nad',
+  'joe69.nad',
+  '0xchine.nad',
+  '💜.nad',
+  '0x771CdA7e3786979d8fDed8d4c22Cd42F7B576dD4',
+  '123%^&',
+])
+
+/*[
+  {
+    name: 'joe69.nad',
+    resolvedAddress: '0x88eecAcDfaC29ab77aa5E185f34CF8481127FB0E'
+  },
+  {
+    name: '0xchine.nad',
+    resolvedAddress: '0x76C5851cE22e476F3513eD31DD77840B4d9DB34C'
+  },
+  {
+    name: '💜.nad',
+    resolvedAddress: '0x0A28c04667686A7F2182a9A2488998c61029289E'
+  },
+  {
+    name: '0x771CdA7e3786979d8fDed8d4c22Cd42F7B576dD4',
+    resolvedAddress: undefined
+  },
+  { name: '123%^&', resolvedAddress: undefined }
+]*/
+```
+
 #### Get the primary .nad name of an address
 
 ```typescript
@@ -116,6 +192,31 @@ const primaryName = await nns.getPrimaryNameForAddress(
   '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
 )
 // test.nad
+```
+
+#### Get the primary .nad name for multiple address
+
+```typescript
+const primaryNames = await nns.getPrimaryNameForAddresses([
+  '0x771CdA7e3786979d8fDed8d4c22Cd42F7B576dD4',
+  '0x88eecAcDfaC29ab77aa5E185f34CF8481127FB0E',
+  zeroAddress,
+])
+
+/*[
+  {
+    addr: '0x771CdA7e3786979d8fDed8d4c22Cd42F7B576dD4',
+    primaryName: 'nnsfaucet.nad'
+  },
+  {
+    addr: '0x88eecAcDfaC29ab77aa5E185f34CF8481127FB0E',
+    primaryName: 'tungtungtungsahur69.nad'
+  },
+  {
+    addr: '0x0000000000000000000000000000000000000000',
+    primaryName: undefined
+  }
+]*/
 ```
 
 #### Get the avatar associated with a name
@@ -168,6 +269,24 @@ const tx1 = await nns.setNameAttributes('test.nad', [
 
 ### NNS Class
 
+#### `getProfile(address: Address)`
+
+Get profile including primary name, avatar for an address
+
+- **Parameters:**
+  - `address`: The wallet address.
+- **Returns:** an `Profile` object includes
+  - `primaryName`: The primaryName of the account
+  - `avatar`: The avatar record of the account
+
+#### `getProfiles(addrs: Address[])`
+
+Get profile including primary name, avatar for multiple address
+
+- **Parameters:**
+  - `addrs`: The list of wallet address.
+- **Returns:** an `Profile[]` array
+
 #### `getResolvedAddress(name: string)`
 
 Resolves a given name to an address.
@@ -176,6 +295,16 @@ Resolves a given name to an address.
   - `name`: The name to resolve, with the `.nad` domain.
 - **Returns:** Resolved address or zero address if unregistered.
 
+#### `getResolvedAddresses(names: string[])`
+
+Resolves a list of names to a list of addresses.
+
+- **Parameters:**
+  - `names`: The name array to resolve, with the `.nad` domain.
+- **Returns:** A list of `ResolvedAddressItem` includes:
+  - `name`: The .nad name
+  - `resolvedAddress`: The resolved address of the name
+
 #### `getPrimaryNameForAddress(address: string)`
 
 Retrieves the primary name associated with an address.
@@ -183,6 +312,16 @@ Retrieves the primary name associated with an address.
 - **Parameters:**
   - `address`: The wallet address.
 - **Returns:** Primary name or empty string if not set.
+
+#### `getPrimaryNameForAddresses(addrs: Address[])`
+
+Retrieves the primary names associated with a list of address.
+
+- **Parameters:**
+  - `addrs`: The list of address
+- **Returns:** A list of `PrimaryNameItems` includes:
+  - `addr`: The wallet address
+  - `primaryName`: The primary name associated with the address
 
 #### `getNameAttribute(name: string, key: string)`
 
